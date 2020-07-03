@@ -2,6 +2,7 @@ const config = require('./utils/config')
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const usersRouter = require('./controllers/users')
 const postsRouter = require('./controllers/posts')
 const mongoose = require('mongoose')
 app.use(cors())
@@ -9,7 +10,7 @@ app.use('/uploads', express.static('uploads'))
 app.use(express.static('build'))
 app.use(express.json())
 app.use( postsRouter )
-
+app.use( usersRouter )
 
 console.log('connecting to', config.MONGODB_URI)
 

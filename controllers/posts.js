@@ -1,5 +1,6 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
+const fs = require('fs')
 const multerConfig = require('../utils/multerConfig')
 
 
@@ -13,13 +14,14 @@ postsRouter.get('/api/posts', async (req, res) => {
 })
 
 postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, res) => {
-try {
+  try {
   const body = req.body
 
   const post = new Post({
       title: body.title,
       author: body.author,
       content: body.content,
+      likes: 0,
       postImage: req.file.path,
       replies: []
   })
@@ -43,6 +45,12 @@ postsRouter.put('/api/posts/:id', async (req, res) => {
 
 postsRouter.delete('/api/posts/:id', async (req, res) => {
   try {
+    const deletedPost = await Post.findById(req.params.id)
+    fs.unlink(`./${deletedPost.postImage}`, (err) => {
+      if (err) throw err;
+      console.log('successfully deleted post');
+    });
+
     await Post.findByIdAndRemove(req.params.id)
     res.status(204).end()
   } catch (error) {
