@@ -1,58 +1,53 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
-const multer = require('multer')
+const multerConfig = require('../utils/multerConfig')
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/')
-  },
-  filename: (req, file, cb) => {
-    cb(null,new Date().toISOString() + file.originalname)
-  }
-
-})
-
-const fileFilter = (req, file, cb) => {
-  if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
-    //accept file
-    cb(null,true)
-  } else {
-  //reject a file
-  cb(null,false)
-  }
-}
-
-const upload = multer({
-  storage: storage, 
-  limits: {
-    fileSize: 1024 * 1024 * 3
-  },
-  fileFilter: fileFilter
-})
 
 postsRouter.get('/api/posts', async (req, res) => {
+  try {
     const posts = await Post.find({})
-
     res.json(posts.map(post => post.toJSON()))
+  } catch (error) {
+    console.log(error)
+  }
 })
 
-postsRouter.post('/api/posts', upload.single('postImage') ,async (req, res) => {
-  console.log(req.file)
-    try {
-        const body = req.body
+postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, res) => {
+try {
+  const body = req.body
 
-        const post = new Post({
-            title: body.title,
-            author: body.author,
-            postImage: req.file.path,
-            replies: []
-        })
-        
-        const savedPost = await post.save()
-        res.status(201).json(savedPost).end()
-      } catch (error) {
-        console.error(error);
-      }
+  const post = new Post({
+      title: body.title,
+      author: body.author,
+      content: body.content,
+      postImage: req.file.path,
+      replies: []
+  })
+  
+    const savedPost = await post.save()
+    res.status(201).json(savedPost).end()
+  } catch (error) {
+    console.error(error);
+  }
+})
+
+postsRouter.put('/api/posts/:id', async (req, res) => {
+  try {
+    const id = req.params.id
+    await Post.findByIdAndUpdate(id, req.body)
+    res.status(20).end()
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+postsRouter.delete('/api/posts/:id', async (req, res) => {
+  try {
+    await Post.findByIdAndRemove(req.params.id)
+    res.status(204).end()
+  } catch (error) {
+    console.log(eror)
+  }
 })
 
 module.exports = postsRouter
