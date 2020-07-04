@@ -3,7 +3,11 @@ const mongoose = require('mongoose')
 const replySchema = mongoose.Schema({
     author: String,
     message: String,
-    likes: Number
+    likes: Number,
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 })
 
 replySchema.set('toJSON', {

@@ -6,8 +6,7 @@ const postSchema = mongoose.Schema({
     content: String,
     likes: Number,
     postImage: String,
-    replies:  
-    [
+    replies:  [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Reply'
@@ -16,7 +15,7 @@ const postSchema = mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-      }
+    }
 })
 
 postSchema.set('toJSON', {
