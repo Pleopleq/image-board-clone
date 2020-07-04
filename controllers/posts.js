@@ -1,7 +1,17 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
+const User = require('../models/user')
 const fs = require('fs')
 const multerConfig = require('../utils/multerConfig')
+const jwt = require('jsonwebtoken')
+
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if(authorization && authorization.toLowerCase().startsWith('bearer ')){
+    return authorization.substring(7)
+  }
+  return null
+}
 
 
 postsRouter.get('/api/posts', async (req, res) => {
@@ -17,21 +27,33 @@ postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, re
   try {
   const body = req.body
 
+  const token = getTokenFrom(req)
+  
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!token || !decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+
+  const user = await User.findById(decodedToken.id)
+
   const post = new Post({
       title: body.title,
       author: body.author,
       content: body.content,
       likes: 0,
       postImage: req.file.path,
-      replies: []
+      user: user._id
   })
   
     const savedPost = await post.save()
+    user.posts = user.posts.concat(savedPost._id)
+    await user.save()
     res.status(201).json(savedPost).end()
   } catch (error) {
     console.error(error);
   }
 })
+
 
 postsRouter.put('/api/posts/:id', async (req, res) => {
   try {
@@ -42,6 +64,7 @@ postsRouter.put('/api/posts/:id', async (req, res) => {
     console.log(error)
   }
 })
+
 
 postsRouter.delete('/api/posts/:id', async (req, res) => {
   try {

@@ -22,7 +22,7 @@ usersRouter.post('/api/users', async (req, res) => {
 })
 
 usersRouter.get('/api/users', async (req, res) => {
-    const users = await User.find({}).populate('posts')
+    const users = await User.find({}).populate('posts', { title: 1, content: 1, likes: 1})
     res.json(users.map(elem => elem.toJSON()))
 })
 
