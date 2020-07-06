@@ -4,19 +4,12 @@ const User = require('../models/user')
 const fs = require('fs')
 const multerConfig = require('../utils/multerConfig')
 const jwt = require('jsonwebtoken')
-
-const getTokenFrom = request => {
-  const authorization = request.get('authorization')
-  if(authorization && authorization.toLowerCase().startsWith('bearer ')){
-    return authorization.substring(7)
-  }
-  return null
-}
+const getTokenFrom = require('../utils/getTokenFrom')
 
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find({})
+    const posts = await Post.find({}).populate('replies', { author: 1})
     res.json(posts.map(post => post.toJSON()))
   } catch (error) {
     console.log(error)
