@@ -9,7 +9,7 @@ const getTokenFrom = require('../utils/getTokenFrom')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find({}).populate('replies', { author: 1})
+    const posts = await Post.find({}).populate('replies', { author: 1 })
     res.json(posts.map(post => post.toJSON()))
   } catch (error) {
     console.log(error)
@@ -24,24 +24,24 @@ postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, re
   
   const decodedToken = jwt.verify(token, process.env.SECRET)
   if (!token || !decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' })
+    return response.status(401).json({ error: 'token missing or invalid' }).end()
   }
 
   const user = await User.findById(decodedToken.id)
 
   const post = new Post({
-      title: body.title,
-      author: body.author,
-      content: body.content,
-      likes: 0,
-      postImage: req.file.path,
-      user: user._id
+    title: body.title,
+    author: user.username,
+    content: body.content,
+    likes: 0,
+    postImage: req.file.path,
+    user: user._id
   })
   
-    const savedPost = await post.save()
-    user.posts = user.posts.concat(savedPost._id)
-    await user.save()
-    res.status(201).json(savedPost).end()
+  const savedPost = await post.save()
+  user.posts = user.posts.concat(savedPost._id)
+  await user.save()
+  res.status(201).json(savedPost).end()
   } catch (error) {
     console.error(error);
   }
@@ -52,7 +52,7 @@ postsRouter.put('/api/posts/:id', async (req, res) => {
   try {
     const id = req.params.id
     await Post.findByIdAndUpdate(id, req.body)
-    res.status(20).end()
+    res.status(201).json().end()
   } catch (error) {
     console.log(error)
   }
@@ -70,7 +70,7 @@ postsRouter.delete('/api/posts/:id', async (req, res) => {
     await Post.findByIdAndRemove(req.params.id)
     res.status(204).end()
   } catch (error) {
-    console.log(eror)
+    console.log(error)
   }
 })
 

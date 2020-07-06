@@ -15,7 +15,7 @@ usersRouter.post('/api/users', async (req, res) => {
     
         const savedUser = await user.save()
 
-        res.json(savedUser)
+        res.status(200).json(savedUser).end()
     } catch (error) {
         console.log(error)
     }
@@ -24,7 +24,7 @@ usersRouter.post('/api/users', async (req, res) => {
 usersRouter.get('/api/users', async (req, res) => {
     try {
     const users = await User.find({}).populate('posts', { title: 1, content: 1, likes: 1})
-    res.json(users.map(elem => elem.toJSON()))
+    res.status(200).json(users.map(elem => elem.toJSON())).end()
     } catch (error) {
         console.log(error)
     }
