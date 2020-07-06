@@ -9,7 +9,7 @@ const getTokenFrom = require('../utils/getTokenFrom')
 repliesRouter.get('/api/replies/:id', async (req, res) => {
     try {
         const postId = req.params.id
-        const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1, likes: 1})
+        const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1})
         res.status(400).json(returnedPost.replies).end()
     } catch (error) {
         console.log(error)
@@ -34,7 +34,6 @@ repliesRouter.post('/api/replies/:id', async (req, res) => {
         const reply = new Reply({
             author: user.username,
             message: body.message,
-            likes: 0,
             user: user._id
         })
 
