@@ -4,12 +4,13 @@ const User = require('../models/user')
 
 usersRouter.post('/api/users', async (req, res) => {
     try {
-        const body = req.body
+        const username = req.body.username.trim()
+        const password = req.body.password.trim()
         const saltRounds = 10
-        const passwordHash = await bcrypt.hash(body.password, saltRounds)
+        const passwordHash = await bcrypt.hash(password, saltRounds)
     
         const user = new User({
-            username: body.username,
+            username: username,
             passwordHash
         })
     

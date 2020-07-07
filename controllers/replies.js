@@ -18,7 +18,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
 
 repliesRouter.post('/api/replies/:id', async (req, res) => {
     try {
-        const body = req.body
+        const message = req.body.message.trim()
         const token = getTokenFrom(req)
         const postId = req.params.id
 
@@ -33,7 +33,7 @@ repliesRouter.post('/api/replies/:id', async (req, res) => {
 
         const reply = new Reply({
             author: user.username,
-            message: body.message,
+            message: message,
             user: user._id
         })
 
@@ -49,7 +49,8 @@ repliesRouter.post('/api/replies/:id', async (req, res) => {
 repliesRouter.put('/api/replies/:id', async (req, res) => {
     try {
         const id = req.params.id
-        await Reply.findByIdAndUpdate(id, req.body)
+        const message = req.body.message.trim()
+        await Reply.findByIdAndUpdate(id, { message: message })
         res.status(201).json().end()
     } catch (error) {
         console.log(error)

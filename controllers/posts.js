@@ -78,7 +78,7 @@ postsRouter.put('/api/posts/:id', async (req, res) => {
       return res.status(401).json({ error: 'Please add some content to the post '}).end()
     }
 
-    await Post.findByIdAndUpdate(id, { content: content, title: title})
+    await Post.findByIdAndUpdate(id, { content: content, title: title })
     res.status(201).json().end()
   } catch (error) {
     console.log(error)
