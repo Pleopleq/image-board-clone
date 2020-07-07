@@ -4,6 +4,7 @@ const User = require('../models/user')
 const fs = require('fs')
 const multerConfig = require('../utils/multerConfig')
 const jwt = require('jsonwebtoken')
+const middleware = require('../middleware/middlewares')
 const getTokenFrom = require('../utils/getTokenFrom')
 
 
@@ -25,18 +26,13 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   }
 })
 
-postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, res) => {
+postsRouter.post('/api/posts', multerConfig.single('postImage'), middleware.isLoggedIn , async (req, res) => {
   try {
   const body = req.body
   const title = body.title.trim()
   const content = body.content.trim()
-
   const token = getTokenFrom(req)
-  
   const decodedToken = jwt.verify(token, process.env.SECRET)
-  if (!token || !decodedToken.id) {
-    return res.status(401).json({ error: 'You have to be logged in to do this' }).end()
-  }
 
   const user = await User.findById(decodedToken.id)
 
@@ -67,7 +63,7 @@ postsRouter.post('/api/posts', multerConfig.single('postImage') , async (req, re
 })
 
 
-postsRouter.put('/api/posts/:id', async (req, res) => {
+postsRouter.put('/api/posts/:id', middleware.checkPostOwnership , async (req, res) => {
   try {
     const body = req.body
     const title = body.title.trim()
@@ -86,7 +82,7 @@ postsRouter.put('/api/posts/:id', async (req, res) => {
 })
 
 
-postsRouter.delete('/api/posts/:id', async (req, res) => {
+postsRouter.delete('/api/posts/:id', middleware.checkPostOwnership , async (req, res) => {
   try {
     const deletedPost = await Post.findById(req.params.id)
     if(deletedPost.postImage === null || deletedPost.postImage === undefined){
