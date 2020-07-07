@@ -10,7 +10,7 @@ try {
     const postId = req.params.id
     const token = getTokenFrom(req)
     if (!token) {
-        return res.status(401).json({ error: 'You have to be logged in to do this' })
+        return res.status(401).json({ error: 'You have to be logged in to do this' }).end()
     } 
     const decodedToken = jwt.verify(token, process.env.SECRET)
     const user = await User.findById(decodedToken.id)
@@ -18,7 +18,7 @@ try {
     if(foundPost == postId){
         next()
     } else {
-        return res.status(404).json({ error: 'You dont have permission to do this' })
+        return res.status(404).json({ error: 'You dont have permission to do this' }).end()
     }
 } catch (error) {
         console.log(error)
@@ -28,10 +28,9 @@ try {
 middlewareObj.isLoggedIn = (req, res, next) => {
     const token = getTokenFrom(req)
     if (!token) {
-        res.status(401).json({ error: 'You have to be logged in to do this' })
-    } else {
-        return next()
+       return res.status(404).json({ error: 'You have to be logged in to do this' }).end()
     }
+    return next()
 }
 
 module.exports = middlewareObj

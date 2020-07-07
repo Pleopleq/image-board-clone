@@ -26,7 +26,7 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   }
 })
 
-postsRouter.post('/api/posts', multerConfig.single('postImage'), middleware.isLoggedIn , async (req, res) => {
+postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postImage'), async (req, res) => {
   try {
   const body = req.body
   const title = body.title.trim()
