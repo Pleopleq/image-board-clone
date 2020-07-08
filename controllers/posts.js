@@ -11,7 +11,7 @@ const getTokenFrom = require('../utils/getTokenFrom')
 postsRouter.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find({}).populate('replies', { author: 1 })
-    res.status(200).json(posts.map(post => post.toJSON())).end()
+    return res.status(200).json(posts.map(post => post.toJSON())).end()
   } catch (error) {
     console.log(error)
   }
@@ -20,7 +20,7 @@ postsRouter.get('/api/posts', async (req, res) => {
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
     const singlePost = await Post.findById(req.params.id)
-    res.status(200).json(singlePost).end()
+    return res.status(200).json(singlePost).end()
   } catch (error) {
     console.log(error)
   }
@@ -56,14 +56,14 @@ postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postI
   const savedPost = await post.save()
   user.posts = user.posts.concat(savedPost._id)
   await user.save()
-  res.status(201).json(savedPost).end()
+  return res.status(201).json(savedPost).end()
   } catch (error) {
     console.error(error);
   }
 })
 
 
-postsRouter.put('/api/posts/:id', middleware.checkPostOwnership , async (req, res) => {
+postsRouter.put('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
   try {
     const body = req.body
     const title = body.title.trim()
@@ -75,14 +75,14 @@ postsRouter.put('/api/posts/:id', middleware.checkPostOwnership , async (req, re
     }
 
     await Post.findByIdAndUpdate(id, { content: content, title: title })
-    res.status(201).json().end()
+    return res.status(201).json().end()
   } catch (error) {
     console.log(error)
   }
 })
 
 
-postsRouter.delete('/api/posts/:id', middleware.checkPostOwnership , async (req, res) => {
+postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
   try {
     const deletedPost = await Post.findById(req.params.id)
     if(deletedPost.postImage === null || deletedPost.postImage === undefined){
@@ -94,7 +94,7 @@ postsRouter.delete('/api/posts/:id', middleware.checkPostOwnership , async (req,
       console.log('successfully deleted post');
     });
     await Post.findByIdAndRemove(req.params.id)
-    res.status(204).end()
+    return res.status(204).end()
   } catch (error) {
     console.log(error)
   }

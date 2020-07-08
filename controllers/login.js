@@ -25,7 +25,7 @@ loginRouter.post('/api/login', async (req, res) => {
 
     const token = jwt.sign(userForToken, process.env.SECRET)
 
-    res.status(200).send({ token, username: user.username }).end()
+    return res.status(200).send({ token, username: user.username }).end()
     } catch (error) {
         console.log(error)
     }
