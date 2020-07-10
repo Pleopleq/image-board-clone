@@ -28,6 +28,7 @@ loginRouter.post('/api/login', async (req, res) => {
     return res.status(200).send({ token, username: user.username }).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 

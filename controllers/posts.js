@@ -14,6 +14,7 @@ postsRouter.get('/api/posts', async (req, res) => {
     return res.status(200).json(posts.map(post => post.toJSON())).end()
   } catch (error) {
     console.log(error)
+    return res.status(404).send({error: 'something went wrong'}).end()
   }
 })
 
@@ -23,6 +24,7 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
     return res.status(200).json(singlePost).end()
   } catch (error) {
     console.log(error)
+    return res.status(404).send({error: 'something went wrong'}).end()
   }
 })
 
@@ -56,9 +58,10 @@ postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postI
   const savedPost = await post.save()
   user.posts = user.posts.concat(savedPost._id)
   await user.save()
-  return res.status(201).json(savedPost).end()
+  return res.status(201).send({sucess: 'Post succesfully added!'}).json(savedPost).end()
   } catch (error) {
     console.error(error);
+    return res.status(404).send({error: 'something went wrong'}).end()
   }
 })
 
@@ -75,9 +78,10 @@ postsRouter.put('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwn
     }
 
     await Post.findByIdAndUpdate(id, { content: content, title: title })
-    return res.status(201).json().end()
+    return res.status(201).send({sucess: 'Post succesfully edit!'}).json().end()
   } catch (error) {
     console.log(error)
+    return res.status(404).send({error: 'something went wrong'}).end()
   }
 })
 
@@ -94,9 +98,10 @@ postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPost
       console.log('successfully deleted post');
     });
     await Post.findByIdAndRemove(req.params.id)
-    return res.status(204).end()
+    return res.status(204).send({success: 'Post succesfully deleted'}).end()
   } catch (error) {
     console.log(error)
+    return res.status(404).send({error: 'something went wrong'}).end()
   }
 })
 

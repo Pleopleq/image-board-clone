@@ -14,6 +14,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
         return res.status(400).json(returnedPost.replies).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 
@@ -41,6 +42,7 @@ repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) =
         return res.status(201).json(savedReply).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 
@@ -49,9 +51,10 @@ repliesRouter.put('/api/replies/:id', middleware.isLoggedIn, middleware.checkCom
         const id = req.params.id
         const message = req.body.message.trim()
         await Reply.findByIdAndUpdate(id, { message: message })
-        return res.status(201).json().end()
+        return res.status(201).send({sucess: 'Comment has been edited.'}).json().end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 
@@ -59,9 +62,10 @@ repliesRouter.delete('/api/replies/:id', middleware.isLoggedIn, middleware.check
     try {
         const id = req.params.id
         await Reply.findByIdAndRemove(id)
-        return res.status(204).end()
+        return res.status(204)..send({sucess: 'Comment has been deleted.'}).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 

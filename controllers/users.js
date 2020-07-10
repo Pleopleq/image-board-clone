@@ -19,6 +19,7 @@ usersRouter.post('/api/users', async (req, res) => {
         return res.status(200).json(savedUser).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 
@@ -28,6 +29,7 @@ usersRouter.get('/api/users', async (req, res) => {
     return res.status(200).json(users.map(elem => elem.toJSON())).end()
     } catch (error) {
         console.log(error)
+        return res.status(404).send({error: 'something went wrong'}).end()
     }
 })
 
