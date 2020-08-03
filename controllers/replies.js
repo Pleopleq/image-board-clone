@@ -11,7 +11,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
     try {
         const postId = req.params.id
         const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
-        return res.status(400).json(returnedPost.replies).end()
+        return res.status(200).json(returnedPost.replies).end()
     } catch (error) {
         console.log(error)
         return res.status(404).send({error: 'something went wrong'}).end()
@@ -62,7 +62,7 @@ repliesRouter.delete('/api/replies/:id', middleware.isLoggedIn, middleware.check
     try {
         const id = req.params.id
         await Reply.findByIdAndRemove(id)
-        return res.status(204)..send({sucess: 'Comment has been deleted.'}).end()
+        return res.status(204).send({sucess: 'Comment has been deleted.'}).end()
     } catch (error) {
         console.log(error)
         return res.status(404).send({error: 'something went wrong'}).end()

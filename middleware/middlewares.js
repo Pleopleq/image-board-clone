@@ -9,9 +9,9 @@ const middlewareObj = {}
 middlewareObj.isLoggedIn = (req, res, next) => {
     const token = getTokenFrom(req)
     if (!token) {
-       return res.status(404).json({ error: 'You have to be logged in to do this' }).end()
+       res.status(404).json({ error: 'You have to be logged in to do this' }).end()
     }
-    return next()
+    next()
 }
 
 middlewareObj.checkPostOwnership = async (req, res, next) => {
@@ -23,9 +23,9 @@ try {
     const postToCheck = await Post.findById(postId)
 
     if(JSON.stringify(user._id) === JSON.stringify(postToCheck.user)){
-        return next()
+        next()
     } else {
-        return res.status(404).json({ error: 'You dont have permission to do this' }).end()
+        res.status(404).json({ error: 'You dont have permission to do this' }).end()
     }
 } catch (error) {
         console.log(error)
@@ -41,20 +41,20 @@ middlewareObj.checkCommentOwnership = async (req, res, next) => {
         const user = await User.findById(decodedToken.id)
 
         if(JSON.stringify(user._id) === JSON.stringify(replyToCheck.user)){
-            return next()
+             next()
         } else {
-            return res.status(404).json({ error: 'You dont have permission to do this' }).end()
+             res.status(404).json({ error: 'You dont have permission to do this' }).end()
         }
     } catch (error) {
         console.log(error)
     }
 }
 
-middleware.unknownEndpoint = (request, response) => {
+middlewareObj.unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
   
-middleware.errorHandler = (error, request, response, next) => {
+middlewareObj.errorHandler = (error, request, response, next) => {
     console.error(error.message)
   
     if (error.name === 'CastError') {

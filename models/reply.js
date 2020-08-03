@@ -2,7 +2,10 @@ const mongoose = require('mongoose')
 
 const replySchema = mongoose.Schema({
     author: String,
-    message: String,
+    message: {
+        type: String,
+        minlength: 4
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
