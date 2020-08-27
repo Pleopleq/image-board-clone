@@ -10,7 +10,7 @@ const getTokenFrom = require('../utils/getTokenFrom')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find({}).populate('replies', { author: 1 , message: 1})
+    const posts = await Post.find({}).populate('replies', { author: 1 , message: 1 })
     return res.status(200).json(posts.map(post => post.toJSON())).end()
   } catch (error) {
     console.log(error)
@@ -20,7 +20,7 @@ postsRouter.get('/api/posts', async (req, res) => {
 
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
-    const singlePost = await Post.findById(req.params.id)
+    const singlePost = await Post.findById(req.params.id).populate('replies', { author: 1 , message: 1 })
     return res.status(200).json(singlePost).end()
   } catch (error) {
     console.log(error)
