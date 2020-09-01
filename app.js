@@ -7,6 +7,7 @@ const loginRouter = require('./controllers/login')
 const postsRouter = require('./controllers/posts')
 const repliesRouter = require('./controllers/replies')
 const mongoose = require('mongoose')
+app.use(cors())
 app.use('/uploads', express.static('uploads'))
 app.use(express.static('build'))
 app.use(express.json())
@@ -14,7 +15,7 @@ app.use( postsRouter )
 app.use( repliesRouter )
 app.use( loginRouter )
 app.use( usersRouter )
-app.use(cors())
+
 
 console.log('connecting to', config.MONGODB_URI)
 
