@@ -29,7 +29,7 @@ repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) =
         const token = getTokenFrom(req)
         const message = req.body.message.trim()
 
-        const repliedPost = await Post.findById(postId)
+        const repliedPost = await Post.find(postId)
 
         const decodedToken = jwt.verify(token, process.env.SECRET)
 
