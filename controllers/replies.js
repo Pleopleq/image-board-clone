@@ -1,4 +1,6 @@
 const repliesRouter = require('express').Router()
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const Reply = require('../models/reply')
 const Post = require('../models/post')
 const User = require('../models/user')
@@ -26,10 +28,11 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
 repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) => {
     try {
         const postId = req.params.id
+        const qrySearch={"_id": new ObjectId(postId)};
         const token = getTokenFrom(req)
         const message = req.body.message.trim()
 
-        const repliedPost = await Post.find(postId)
+        const repliedPost = await Post.find(qrySearch)
 
         const decodedToken = jwt.verify(token, process.env.SECRET)
 
