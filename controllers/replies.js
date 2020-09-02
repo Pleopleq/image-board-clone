@@ -16,7 +16,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
             const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
             return res.status(200).json(returnedPost.replies).end()
         } else {
-            return
+            return null
         }
         
     } catch (error) {
