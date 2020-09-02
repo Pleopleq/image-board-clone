@@ -10,8 +10,13 @@ const getTokenFrom = require('../utils/getTokenFrom')
 repliesRouter.get('/api/replies/:id', async (req, res) => {
     try {
         const postId = req.params.id
-        const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
-        return res.status(200).json(returnedPost.replies).end()
+        if(postId){
+            const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
+            return res.status(200).json(returnedPost.replies).end()
+        } else {
+            return
+        }
+        
     } catch (error) {
         console.log(error)
         return res.status(404).send({error: 'something went wrong'}).end()
