@@ -1,6 +1,4 @@
 const repliesRouter = require('express').Router()
-const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
 const Reply = require('../models/reply')
 const Post = require('../models/post')
 const User = require('../models/user')
@@ -16,7 +14,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
             const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
             return res.status(200).json(returnedPost.replies).end()
         } else {
-            return null
+            return 
         }
         
     } catch (error) {
@@ -28,11 +26,10 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
 repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) => {
     try {
         const postId = req.params.id
-        const qrySearch={"_id": new ObjectId(postId)};
         const token = getTokenFrom(req)
         const message = req.body.message.trim()
 
-        const repliedPost = await Post.find(qrySearch)
+        const repliedPost = await Post.findById(postId)
 
         const decodedToken = jwt.verify(token, process.env.SECRET)
 
