@@ -36,7 +36,7 @@ postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postI
   const token = getTokenFrom(req)
   const decodedToken = jwt.verify(token, process.env.SECRET)
 
-  const user = await User.find(decodedToken.id)
+  const user = await User.findOne(decodedToken.id)
 
   if(content === ''){
     return res.send({ error: 'Please add some content to the post '}).json().end()
