@@ -1,8 +1,6 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
 const User = require('../models/user')
-const fs = require('fs')
-const multerConfig = require('../utils/multerConfig')
 const jwt = require('jsonwebtoken')
 const middleware = require('../middleware/middlewares')
 const getTokenFrom = require('../utils/getTokenFrom')
@@ -28,7 +26,7 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   }
 })
 
-postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postImage'), async (req, res) => {
+postsRouter.post('/api/posts', middleware.isLoggedIn, async (req, res) => {
   try {
   const body = req.body
   const title = body.title.trim()
@@ -51,7 +49,7 @@ postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postI
     author: user.username,
     content: content,
     likes: 0,
-    postImage: req.file.path, 
+    postImage: body.postImage, 
     user: user._id
   })
 
@@ -97,10 +95,7 @@ postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPost
       await Post.findByIdAndRemove(req.params.id)
       return res.status(204).end()
     }
-    fs.unlink(`./${deletedPost.postImage}`, (err) => {
-      if (err) throw err;
-      console.log('successfully deleted post');
-    });
+
     await Post.findByIdAndRemove(req.params.id)
     return res.status(204).send({success: 'Post succesfully deleted'}).end()
   } catch (error) {
