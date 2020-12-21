@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const bcrypt = require("bcrypt")
 const uniqueValidator = require('mongoose-unique-validator')
 
 const userSchema = new mongoose.Schema({
@@ -7,7 +8,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         minlength: 4
     },
-    passwordHash: {
+    password: {
         type: String,
         minlength: 4
     },
@@ -21,13 +22,22 @@ const userSchema = new mongoose.Schema({
 
 userSchema.plugin(uniqueValidator)
 
-userSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-        delete returnedObject.passwordHash
+userSchema.methods.toJSON = function () {
+    const user = this
+    const userObject = user.toObject()
+    delete userObject.password
+
+    return userObject
+}
+
+userSchema.pre("save", async function (next) {
+    const user = this
+    
+    if(user.isModified("password")) {
+        user.password = await bcrypt.hash(user.password, 10)
     }
+
+    next()
 })
 
 const User = mongoose.model('User', userSchema)
