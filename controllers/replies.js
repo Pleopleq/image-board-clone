@@ -23,7 +23,7 @@ repliesRouter.get('/api/replies/:id', async (req, res) => {
     }
 })
 
-repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) => {
+repliesRouter.post('/api/replies/:id', async (req, res) => {
     try {
         const postId = req.params.id
         const token = getTokenFrom(req)
@@ -51,7 +51,7 @@ repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) =
     }
 })
 
-repliesRouter.put('/api/replies/:id', middleware.isLoggedIn, middleware.checkCommentOwnership, async (req, res) => {
+repliesRouter.put('/api/replies/:id', async (req, res) => {
     try {
         const id = req.params.id
         const message = req.body.message.trim()
@@ -63,7 +63,7 @@ repliesRouter.put('/api/replies/:id', middleware.isLoggedIn, middleware.checkCom
     }
 })
 
-repliesRouter.delete('/api/replies/:id', middleware.isLoggedIn, middleware.checkCommentOwnership ,async (req, res) => {
+repliesRouter.delete('/api/replies/:id', async (req, res) => {
     try {
         const id = req.params.id
         await Reply.findByIdAndRemove(id)

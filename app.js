@@ -1,12 +1,12 @@
 const config = require('./utils/config')
 const express = require('express')
+const mongoose = require('mongoose')
 const app = express()
 const cors = require('cors')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const postsRouter = require('./controllers/posts')
 const repliesRouter = require('./controllers/replies')
-const mongoose = require('mongoose')
 app.use(cors())
 app.use('/uploads', express.static('uploads'))
 app.use(express.static('build'))
@@ -17,9 +17,14 @@ app.use( loginRouter )
 app.use( usersRouter )
 
 
-console.log('connecting to', config.MONGODB_URI)
+console.log('connecting to', config.MONGODB_LOCAL)
 
-mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true , useUnifiedTopology: true, useFindAndModify: true })
+mongoose.connect(config.MONGODB_LOCAL, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
+    })
     .then(() => {
         console.log('connected to MongoDB')
     })

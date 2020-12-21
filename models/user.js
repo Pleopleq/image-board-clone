@@ -15,12 +15,6 @@ const userSchema = new mongoose.Schema({
         minlength: 4,
         trim: true
     },
-    posts: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Post'
-        }
-    ],
     tokens: [{
         token: {
             type: String,
@@ -30,6 +24,12 @@ const userSchema = new mongoose.Schema({
 })
 
 userSchema.plugin(uniqueValidator)
+
+userSchema.virtual("posts", {
+    ref: "Post",
+    localField: "_id",
+    foreignField: "owner    "
+})
 
 userSchema.methods.toJSON = function () {
     const user = this

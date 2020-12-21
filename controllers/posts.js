@@ -2,70 +2,53 @@ const postsRouter = require('express').Router()
 const Post = require('../models/post')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
-const middleware = require('../middleware/middlewares')
+const { auth } = require('../middleware/middlewares')
 const getTokenFrom = require('../utils/getTokenFrom')
 
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find({}).populate('replies', { author: 1 , message: 1 })
-    return res.status(200).json(posts.map(post => post.toJSON())).end()
+    res.status(200).send(posts.map(post => post.toJSON()))
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(404).send({error: 'something went wrong'})
   }
 })
 
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
     const singlePost = await Post.findById(req.params.id).populate('replies', { author: 1 , message: 1 })
-    return res.status(200).json(singlePost).end()
+    res.status(200).json(singlePost).end()
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(404).send({error: 'something went wrong'})
   }
 })
 
-postsRouter.post('/api/posts', middleware.isLoggedIn, async (req, res) => {
-  try {
-  const body = req.body
-  const title = body.title.trim()
-  const content = body.content.trim()
-  const token = getTokenFrom(req)
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-
-  const user = await User.findById(decodedToken.id)
-
-  if(content === ''){
-    return res.send({ error: 'Please add some content to the post '}).json().end()
-  }
-
+postsRouter.post('/api/posts', auth, async (req, res) => {
   if (req.file === undefined || req.file === '' || req.file === null) {
     req.file = ''
   }
 
-  const post = new Post({
-    title: title,
-    author: user.username,
-    content: content,
-    likes: 0,
-    postImage: body.postImage, 
-    user: user._id
+  const newPost = new Post({
+    ...req.body,
+    author: req.user.username,
+    owner: req.user._id
   })
 
-  const savedPost = await post.save()
-  user.posts = user.posts.concat(savedPost._id)
-  await user.save()
-  return res.send(savedPost)
+  try {
+    await newPost.save()
+    res.status(201).send(newPost)
   } catch (error) {
     console.error(error);
-    return res.send({error: 'something went wrong'}).next()
+    return res.status(500).send({ error: 'something went wrong' })
   }
 })
 
 
 
-postsRouter.put('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
+postsRouter.put('/api/posts/:id', async (req, res) => {
   try {
     const body = req.body
     const title = body.title.trim()
@@ -86,7 +69,7 @@ postsRouter.put('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwn
 
 
 
-postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
+postsRouter.delete('/api/posts/:id', async (req, res) => {
   try {
     const deletedPost = await Post.findById(req.params.id)
     delete req.body.__v;
@@ -104,7 +87,7 @@ postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPost
   }
 })
 
-postsRouter.put('/api/posts/likes/:id', middleware.isLoggedIn, async (req, res) => {
+postsRouter.put('/api/posts/likes/:id', async (req, res) => {
   try {
       const id = req.params.id
       const likedPost = await Post.findById(id)
