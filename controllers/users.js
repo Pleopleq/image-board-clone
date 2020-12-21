@@ -22,11 +22,10 @@ usersRouter.post('/api/users', async (req, res) => {
 
 usersRouter.get('/api/users', async (req, res) => {
     try {
-    const users = await User.find({}).populate('posts', { title: 1, content: 1, likes: 1})
-    return res.status(200).send(users.map(elem => elem.toJSON()))
+        const users = await User.find({}).populate('posts', { title: 1, content: 1, likes: 1})
+        res.status(200).send(users.map(elem => elem.toJSON()))
     } catch (error) {
-        console.log(error)
-        return res.status(404).send({ error: 'something went wrong' })
+        res.status(404).send({ error: 'something went wrong' })
     }
 })
 
