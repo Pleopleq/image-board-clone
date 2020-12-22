@@ -1,10 +1,6 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
-const User = require('../models/user')
-const jwt = require('jsonwebtoken')
 const { auth } = require('../middleware/middlewares')
-const getTokenFrom = require('../utils/getTokenFrom')
-
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
