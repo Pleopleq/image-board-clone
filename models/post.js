@@ -24,13 +24,13 @@ const postSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "User"
-    },
-    replies:  [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Reply'
-        }
-    ]
+    }
+})
+
+postSchema.virtual("replies", {
+    ref: "Reply",
+    localField: "_id",
+    foreignField: "owner"
 })
 
 
