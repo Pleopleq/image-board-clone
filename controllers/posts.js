@@ -8,7 +8,7 @@ postsRouter.get('/api/posts', async (req, res) => {
     res.status(200).send(posts.map(post => post.toJSON()))
   } catch (error) {
     console.log(error)
-    res.status(404).send({error: 'something went wrong'})
+    res.status(500).send({error: 'something went wrong'})
   }
 })
 
@@ -18,7 +18,7 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
     res.status(200).send(singlePost)
   } catch (error) {
     console.log(error)
-    res.status(404).send({ error: 'something went wrong' })
+    res.status(500).send({ error: 'something went wrong' })
   }
 })
 
@@ -48,7 +48,7 @@ postsRouter.patch('/api/posts/:id', auth, async (req, res) => {
   const postId = req.params.id
   const fieldsToUpdate = req.body
   const updates = Object.keys(fieldsToUpdate)
-  const allowedUpdates = ["title", "content"]
+  const allowedUpdates = ["title", "content", "likes"]
 
   const isUpdateValid = updates.every((update) => {
     return allowedUpdates.includes(update)
@@ -71,42 +71,22 @@ postsRouter.patch('/api/posts/:id', auth, async (req, res) => {
     res.status(201).send(updatedPost)
   } catch (error) {
     console.log(error)
-    res.status(404).send({error: 'something went wrong'})
+    res.status(500).send({error: 'something went wrong'})
   }
 })
 
-postsRouter.delete('/api/posts/:id', async (req, res) => {
+postsRouter.delete('/api/posts/:id', auth, async (req, res) => {
   try {
-    const deletedPost = await Post.findById(req.params.id)
-    delete req.body.__v;
-    
-    if(deletedPost.postImage === null || deletedPost.postImage === undefined){
-      await Post.findByIdAndRemove(req.params.id)
-      return res.status(204).end()
+    const deletedPost = await Post.findOneAndDelete({ _id:req.params.id, owner:req.user._id })
+    if(!deletedPost){
+      return res.status(404).end()
     }
 
-    await Post.findByIdAndRemove(req.params.id)
-    return res.status(204).send({success: 'Post succesfully deleted'}).end()
+    res.send(deletedPost)
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(500).send({ error: 'something went wrong' })
   }
 })
-
-postsRouter.put('/api/posts/likes/:id', async (req, res) => {
-  try {
-      const id = req.params.id
-      const likedPost = await Post.findById(id)
-      delete likedPost.user
-
-      const copyLikedPost = {...likedPost._doc}
-      ++copyLikedPost.likes
-      await Post.findByIdAndUpdate(id, copyLikedPost)
-      return res.status(200).end()
-  } catch (error) {
-      console.log(error)
-  }
-})
-
 
 module.exports = postsRouter
