@@ -20,6 +20,11 @@ const postSchema = new mongoose.Schema({
         default: 0
     },
     postImage: String,
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User"
+    },
     replies:  [
         {
             type: mongoose.Schema.Types.ObjectId,

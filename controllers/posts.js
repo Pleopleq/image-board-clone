@@ -14,11 +14,11 @@ postsRouter.get('/api/posts', async (req, res) => {
 
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
-    const singlePost = await Post.findById(req.params.id).populate('replies', { author: 1 , message: 1 })
-    res.status(200).json(singlePost).end()
+    const singlePost = await Post.findOne(req.params.id).populate('replies', { author: 1 , message: 1 })
+    res.status(200).send(singlePost)
   } catch (error) {
     console.log(error)
-    res.status(404).send({error: 'something went wrong'})
+    res.status(404).send({ error: 'something went wrong' })
   }
 })
 
@@ -44,26 +44,36 @@ postsRouter.post('/api/posts', auth, async (req, res) => {
 
 
 
-postsRouter.put('/api/posts/:id', async (req, res) => {
-  try {
-    const body = req.body
-    const title = body.title.trim()
-    const content = body.content.trim()
-    const id = req.params.id
+postsRouter.patch('/api/posts/:id', auth, async (req, res) => {
+  const postId = req.params.id
+  const fieldsToUpdate = req.body
+  const updates = Object.keys(fieldsToUpdate)
+  const allowedUpdates = ["title", "content"]
 
-    if(content === ''){
-      return res.status(401).json({ error: 'Please add some content to the post '}).end()
+  const isUpdateValid = updates.every((update) => {
+    return allowedUpdates.includes(update)
+  })
+
+  if(!isUpdateValid){
+    return res.status(400).send({ error: "Invalid updates" })
+  }  
+
+  try {
+    const updatedPost = await Post.findOne({ _id: postId, owner:req.user._id })
+    
+    if(!updatedPost){
+      res.status(404).send().end()
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(id, { content: content, title: title })
-    return res.status(201).send(updatedPost).json().end()
+    updates.forEach((update) => updatedPost[update] = fieldsToUpdate[update])
+    await updatedPost.save()
+
+    res.status(201).send(updatedPost)
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(404).send({error: 'something went wrong'})
   }
 })
-
-
 
 postsRouter.delete('/api/posts/:id', async (req, res) => {
   try {
@@ -88,6 +98,7 @@ postsRouter.put('/api/posts/likes/:id', async (req, res) => {
       const id = req.params.id
       const likedPost = await Post.findById(id)
       delete likedPost.user
+
       const copyLikedPost = {...likedPost._doc}
       ++copyLikedPost.likes
       await Post.findByIdAndUpdate(id, copyLikedPost)
