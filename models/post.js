@@ -1,29 +1,39 @@
 const mongoose = require('mongoose')
 
-const postSchema = mongoose.Schema({
-    title: String,
-    author: String,
-    content: String,
-    likes: Number,
+const postSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    author: {
+        type: String,
+        require: true,
+    },
+    content: {
+        type: String, 
+        required: true,
+        trim: true
+    },
+    likes: {
+        type: Number,
+        default: 0
+    },
     postImage: String,
-    replies:  [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Reply'
-        }
-    ],
-    user: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        required: true,
+        ref: "User"
     }
 })
 
-postSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-    }
+postSchema.virtual("replies", {
+    ref: "Reply",
+    localField: "_id",
+    foreignField: "insideOf"
 })
 
-module.exports = mongoose.model('Post', postSchema)
+
+const Post = mongoose.model('Post', postSchema)
+
+module.exports = Post

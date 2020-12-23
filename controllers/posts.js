@@ -1,127 +1,92 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
-const User = require('../models/user')
-const fs = require('fs')
-const multerConfig = require('../utils/multerConfig')
-const jwt = require('jsonwebtoken')
-const middleware = require('../middleware/middlewares')
-const getTokenFrom = require('../utils/getTokenFrom')
-
+const { auth } = require('../middleware/middlewares')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find({}).populate('replies', { author: 1 , message: 1 })
-    return res.status(200).json(posts.map(post => post.toJSON())).end()
+    res.status(200).send(posts.map(post => post.toJSON()))
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(500).send({error: 'something went wrong'})
   }
 })
 
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
-    const singlePost = await Post.findById(req.params.id).populate('replies', { author: 1 , message: 1 })
-    return res.status(200).json(singlePost).end()
+    const singlePost = await Post.findOne(req.params.id).populate('replies', { author: 1 , message: 1 })
+    res.status(200).send(singlePost)
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(500).send({ error: 'something went wrong' })
   }
 })
 
-postsRouter.post('/api/posts', middleware.isLoggedIn, multerConfig.single('postImage'), async (req, res) => {
-  try {
-  const body = req.body
-  const title = body.title.trim()
-  const content = body.content.trim()
-  const token = getTokenFrom(req)
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-
-  const user = await User.findById(decodedToken.id)
-
-  if(content === ''){
-    return res.send({ error: 'Please add some content to the post '}).json().end()
-  }
-
+postsRouter.post('/api/posts', auth, async (req, res) => {
   if (req.file === undefined || req.file === '' || req.file === null) {
     req.file = ''
   }
 
-  const post = new Post({
-    title: title,
-    author: user.username,
-    content: content,
-    likes: 0,
-    postImage: req.file.path, 
-    user: user._id
+  const newPost = new Post({
+    ...req.body,
+    author: req.user.username,
+    owner: req.user._id
   })
 
-  const savedPost = await post.save()
-  user.posts = user.posts.concat(savedPost._id)
-  await user.save()
-  return res.send(savedPost)
+  try {
+    await newPost.save()
+    res.status(201).send(newPost)
   } catch (error) {
     console.error(error);
-    return res.send({error: 'something went wrong'}).next()
+    return res.status(500).send({ error: 'something went wrong' })
   }
 })
 
 
 
-postsRouter.put('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
+postsRouter.patch('/api/posts/:id', auth, async (req, res) => {
+  const postId = req.params.id
+  const fieldsToUpdate = req.body
+  const updates = Object.keys(fieldsToUpdate)
+  const allowedUpdates = ["title", "content", "likes"]
+
+  const isUpdateValid = updates.every((update) => {
+    return allowedUpdates.includes(update)
+  })
+
+  if(!isUpdateValid){
+    return res.status(400).send({ error: "Invalid updates" })
+  }  
+
   try {
-    const body = req.body
-    const title = body.title.trim()
-    const content = body.content.trim()
-    const id = req.params.id
-
-    if(content === ''){
-      return res.status(401).json({ error: 'Please add some content to the post '}).end()
-    }
-
-    const updatedPost = await Post.findByIdAndUpdate(id, { content: content, title: title })
-    return res.status(201).send(updatedPost).json().end()
-  } catch (error) {
-    console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
-  }
-})
-
-
-
-postsRouter.delete('/api/posts/:id', middleware.isLoggedIn, middleware.checkPostOwnership , async (req, res) => {
-  try {
-    const deletedPost = await Post.findById(req.params.id)
-    delete req.body.__v;
+    const updatedPost = await Post.findOne({ _id: postId, owner:req.user._id })
     
-    if(deletedPost.postImage === null || deletedPost.postImage === undefined){
-      await Post.findByIdAndRemove(req.params.id)
-      return res.status(204).end()
+    if(!updatedPost){
+      res.status(404).send().end()
     }
-    fs.unlink(`./${deletedPost.postImage}`, (err) => {
-      if (err) throw err;
-      console.log('successfully deleted post');
-    });
-    await Post.findByIdAndRemove(req.params.id)
-    return res.status(204).send({success: 'Post succesfully deleted'}).end()
+
+    updates.forEach((update) => updatedPost[update] = fieldsToUpdate[update])
+    await updatedPost.save()
+
+    res.status(201).send(updatedPost)
   } catch (error) {
     console.log(error)
-    return res.status(404).send({error: 'something went wrong'}).end()
+    res.status(500).send({error: 'something went wrong'})
   }
 })
 
-postsRouter.put('/api/posts/likes/:id', middleware.isLoggedIn, async (req, res) => {
+postsRouter.delete('/api/posts/:id', auth, async (req, res) => {
   try {
-      const id = req.params.id
-      const likedPost = await Post.findById(id)
-      delete likedPost.user
-      const copyLikedPost = {...likedPost._doc}
-      ++copyLikedPost.likes
-      await Post.findByIdAndUpdate(id, copyLikedPost)
-      return res.status(200).end()
+    const deletedPost = await Post.findOneAndDelete({ _id:req.params.id, owner:req.user._id })
+    if(!deletedPost){
+      return res.status(404).end()
+    }
+
+    res.send(deletedPost)
   } catch (error) {
-      console.log(error)
+    console.log(error)
+    res.status(500).send({ error: 'something went wrong' })
   }
 })
-
 
 module.exports = postsRouter

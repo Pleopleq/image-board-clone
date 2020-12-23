@@ -3,18 +3,26 @@ const Post = require('../models/post')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 const getTokenFrom = require('../utils/getTokenFrom')
-const middlewareObj = {}
 
 
-middlewareObj.isLoggedIn = (req, res, next) => {
-    const token = getTokenFrom(req)
-    if (!token) {
-       res.status(404).json({ error: 'You have to be logged in to do this' }).end()
+
+const auth = async (req, res, next) => {
+    try {
+        const token = req.header("Authorization").replace("Bearer ", "")
+        const decoded = jwt.verify(token, process.env.SECRET)
+        const authUser = await User.findOne({ _id: decoded._id, "tokens.token": token })
+        if(!authUser) {
+            throw new Error()
+        }
+        req.token = token
+        req.user = authUser
+        next()
+    } catch (error) {
+        res.status(401).send({ error: "Please authenticate."})
     }
-    next()
 }
 
-middlewareObj.checkPostOwnership = async (req, res, next) => {
+const checkPostOwnership = async (req, res, next) => {
 try {
     const postId = req.params.id
     const token = getTokenFrom(req)
@@ -32,7 +40,7 @@ try {
     }
 }
 
-middlewareObj.checkCommentOwnership = async (req, res, next) => {
+const checkCommentOwnership = async (req, res, next) => {
     try {
         const replyId = req.params.id
         const token = getTokenFrom(req)
@@ -50,24 +58,8 @@ middlewareObj.checkCommentOwnership = async (req, res, next) => {
     }
 }
 
-middlewareObj.unknownEndpoint = (request, response) => {
+const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
-  
-middlewareObj.errorHandler = (error, request, response, next) => {
-    console.error(error.message)
-  
-    if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
-    } else if (error.name === 'ValidationError') {
-      return response.status(400).json({ error: error.message })
-    }
-    else if (error.name === 'JsonWebTokenError') {
-        return response.status(401).json({
-            error: 'invalid token'
-        })
-    }
-    next(error)
-}
 
-module.exports = middlewareObj
+module.exports = {auth}

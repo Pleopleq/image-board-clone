@@ -1,23 +1,26 @@
 const mongoose = require('mongoose')
 
-const replySchema = mongoose.Schema({
-    author: String,
+const replySchema = new mongoose.Schema({
+    author: {
+        type: String,
+        required: true
+    },
     message: {
         type: String,
-        minlength: 4
+        minlength: 4,
+        required: true,
+        trim: true
     },
-    user: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    insideOf: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post"
     }
 })
 
-replySchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-    }
-})
+const Reply = mongoose.model('Reply', replySchema)
 
-module.exports = mongoose.model('Reply', replySchema)
+module.exports = Reply

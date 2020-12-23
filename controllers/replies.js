@@ -2,56 +2,50 @@ const repliesRouter = require('express').Router()
 const Reply = require('../models/reply')
 const Post = require('../models/post')
 const User = require('../models/user')
-const jwt = require('jsonwebtoken')
-const middleware = require('../middleware/middlewares')
-const getTokenFrom = require('../utils/getTokenFrom')
+const { auth } = require('../middleware/middlewares')
+const { post } = require('./posts')
 
 
 repliesRouter.get('/api/replies/:id', async (req, res) => {
+    const postId = req.params.id
     try {
-        const postId = req.params.id
-        if(postId){
-            const returnedPost = await Post.findById(postId).populate('replies', { author: 1, message: 1 })
-            return res.status(200).json(returnedPost.replies).end()
-        } else {
-            return 
+        const returnedPost = await Reply.find({ insideOf: postId })
+        if(!returnedPost){
+            res.status(404).end()
         }
-        
+        res.send(returnedPost)
+
     } catch (error) {
         console.log(error)
-        return res.status(404).send({error: 'something went wrong'}).end()
+        res.status(404).send({ error: 'something went wrong' })
     }
 })
 
-repliesRouter.post('/api/replies/:id', middleware.isLoggedIn ,async (req, res) => {
+repliesRouter.post('/api/replies/:id', auth, async (req, res) => {
+    const postId = req.params.id
     try {
-        const postId = req.params.id
-        const token = getTokenFrom(req)
-        const message = req.body.message.trim()
+        const repliedPost = await Post.findOne({ _id:postId })
 
-        const repliedPost = await Post.findById(postId)
+        if(!repliedPost) {
+            return res.status(404).end()
+        }
 
-        const decodedToken = jwt.verify(token, process.env.SECRET)
-
-        const user = await User.findById(decodedToken.id)
-
-        const reply = new Reply({
-            author: user.username,
-            message: message,
-            user: user._id
+        const newReply = new Reply({
+        author: req.user.username,
+        message: req.body.message,
+        owner: req.user._id,
+        insideOf: postId
         })
 
-        const savedReply = await reply.save()
-        repliedPost.replies = repliedPost.replies.concat(savedReply)
-        await repliedPost.save()
-        return res.status(201).json(savedReply).end()
+        await newReply.save()
+        res.status(201).send(newReply) 
     } catch (error) {
         console.log(error)
-        return res.status(404).send({error: 'something went wrong'}).end()
+        res.status(404).send({ error: 'something went wrong' })
     }
 })
 
-repliesRouter.put('/api/replies/:id', middleware.isLoggedIn, middleware.checkCommentOwnership, async (req, res) => {
+repliesRouter.put('/api/replies/:id', async (req, res) => {
     try {
         const id = req.params.id
         const message = req.body.message.trim()
@@ -63,7 +57,7 @@ repliesRouter.put('/api/replies/:id', middleware.isLoggedIn, middleware.checkCom
     }
 })
 
-repliesRouter.delete('/api/replies/:id', middleware.isLoggedIn, middleware.checkCommentOwnership ,async (req, res) => {
+repliesRouter.delete('/api/replies/:id', async (req, res) => {
     try {
         const id = req.params.id
         await Reply.findByIdAndRemove(id)
