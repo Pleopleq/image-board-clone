@@ -8,11 +8,16 @@ const replySchema = new mongoose.Schema({
     message: {
         type: String,
         minlength: 4,
-        required: true
+        required: true,
+        trim: true
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    insideOf: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post"
     }
 })
 

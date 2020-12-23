@@ -28,7 +28,7 @@ userSchema.plugin(uniqueValidator)
 userSchema.virtual("posts", {
     ref: "Post",
     localField: "_id",
-    foreignField: "owner    "
+    foreignField: "owner"
 })
 
 userSchema.methods.toJSON = function () {

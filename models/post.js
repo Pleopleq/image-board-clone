@@ -30,7 +30,7 @@ const postSchema = new mongoose.Schema({
 postSchema.virtual("replies", {
     ref: "Reply",
     localField: "_id",
-    foreignField: "owner"
+    foreignField: "insideOf"
 })
 
 
