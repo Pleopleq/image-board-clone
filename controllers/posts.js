@@ -14,7 +14,7 @@ postsRouter.get('/api/posts', async (req, res) => {
 
 postsRouter.get('/api/posts/:id', async (req, res) => {
   try {
-    const singlePost = await Post.findOne(req.params.id).populate('replies', { author: 1 , message: 1 })
+    const singlePost = await Post.findOne({ _id: req.params.id }).populate('replies', { author: 1 , message: 1 })
     res.status(200).send(singlePost)
   } catch (error) {
     console.log(error)
