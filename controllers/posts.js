@@ -1,6 +1,7 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
 const { auth } = require('../middleware/middlewares')
+const allowedUpdates = require('../utils/allowedUpdates')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
@@ -46,29 +47,24 @@ postsRouter.post('/api/posts', auth, async (req, res) => {
 
 postsRouter.patch('/api/posts/:id', auth, async (req, res) => {
   const postId = req.params.id
-  const fieldsToUpdate = req.body
-  const updates = Object.keys(fieldsToUpdate)
-  const allowedUpdates = ["title", "content", "likes"]
+  const updates = ["title", "content", "likes"]
+  const isAllowed = allowedUpdates(req.body, updates)
 
-  const isUpdateValid = updates.every((update) => {
-    return allowedUpdates.includes(update)
-  })
-
-  if(!isUpdateValid){
+  if(!isAllowed){
     return res.status(400).send({ error: "Invalid updates" })
   }  
 
   try {
-    const updatedPost = await Post.findOne({ _id: postId, owner:req.user._id })
+    const updatedPost = await Post.findOne({ _id: postId, owner: req.user._id })
     
     if(!updatedPost){
       res.status(404).send().end()
     }
 
-    updates.forEach((update) => updatedPost[update] = fieldsToUpdate[update])
+    updates.forEach((update) => updatedPost[update] = req.body[update])
     await updatedPost.save()
 
-    res.status(201).send(updatedPost)
+    return res.send(updatedPost)
   } catch (error) {
     console.log(error)
     res.status(500).send({error: 'something went wrong'})
