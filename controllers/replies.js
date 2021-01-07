@@ -1,7 +1,7 @@
 const repliesRouter = require('express').Router()
 const Reply = require('../models/reply')
 const Post = require('../models/post')
-const User = require('../models/user')
+const allowedUpdates = require('../utils/allowedUpdates')
 const { auth } = require('../middleware/middlewares')
 const { post } = require('./posts')
 
@@ -45,26 +45,44 @@ repliesRouter.post('/api/replies/:id', auth, async (req, res) => {
     }
 })
 
-repliesRouter.put('/api/replies/:id', async (req, res) => {
+repliesRouter.patch('/api/replies/:id', auth ,async (req, res) => {
+    const replyId = req.params.id
+    const updates = ["message"]
+    const isAllowed = allowedUpdates(req.body, updates)
+    
+    if(!isAllowed){
+        return res.status(400).send({ error: "Invalid Updates" })
+    }
     try {
-        const id = req.params.id
-        const message = req.body.message.trim()
-        await Reply.findByIdAndUpdate(id, { message: message })
-        return res.status(201).send({sucess: 'Comment has been edited.'}).json().end()
+        const updatedReply = await Reply.findOne({ _id: replyId, owner: req.user._id })
+        
+        if(!updatedReply){
+            return res.status(404).send().end()
+        }
+
+        updates.forEach(update => updatedReply[update] = req.body[update])
+        await updatedReply.save()
+        
+        return res.send(updatedReply)
     } catch (error) {
         console.log(error)
-        return res.status(404).send({error: 'something went wrong'}).end()
+        return res.status(404).send({ error: 'something went wrong' })
     }
 })
 
-repliesRouter.delete('/api/replies/:id', async (req, res) => {
+repliesRouter.delete('/api/replies/:id', auth, async (req, res) => {
     try {
-        const id = req.params.id
-        await Reply.findByIdAndRemove(id)
-        return res.status(204).send({sucess: 'Comment has been deleted.'}).end()
+        const replyId = req.params.id
+        const deletedReply = await Reply.findByIdAndDelete({ _id: replyId, owner: req.user._id })
+
+        if(!deletedReply) {
+            return res.status(404).send()
+        }
+
+        res.send(deletedReply)
     } catch (error) {
         console.log(error)
-        return res.status(404).send({error: 'something went wrong'}).end()
+        return res.status(404).send({ error: 'something went wrong' })
     }
 })
 
