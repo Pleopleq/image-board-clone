@@ -5,8 +5,8 @@ const allowedUpdates = require('../utils/allowedUpdates')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find({}).populate('replies', { author: 1 , message: 1 })
-    res.status(200).send(posts.map(post => post.toJSON()))
+    const posts = await Post.find().sort({ updatedAt: -1 })
+    res.status(200).send(posts)
   } catch (error) {
     console.log(error)
     res.status(500).send({error: 'something went wrong'})
@@ -23,7 +23,7 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   }
 })
 
-postsRouter.post('/api/posts', auth, async (req, res) => {
+postsRouter.post('/api/posts', auth,  async (req, res) => {
   if (req.file === undefined || req.file === '' || req.file === null) {
     req.file = ''
   }

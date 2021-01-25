@@ -25,6 +25,8 @@ const postSchema = new mongoose.Schema({
         required: true,
         ref: "User"
     }
+}, {
+    timestamps: true
 })
 
 postSchema.virtual("replies", {
