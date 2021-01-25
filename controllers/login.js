@@ -4,9 +4,7 @@ const User = require('../models/user')
 loginRouter.post('/api/login', async (req, res) => {
     try {
     const userData = req.body
-
     const loggedUser = await User.findByCredentials(userData.username, userData.password)
-    console.log(loggedUser)
     const token = await loggedUser.generateAuthToken()
     
     res.send({ loggedUser, token})

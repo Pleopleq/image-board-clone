@@ -3,8 +3,6 @@ const Post = require('../models/post')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
-
-
 const auth = async (req, res, next) => {
     try {
         const token = req.header("Authorization").replace("Bearer ", "")
