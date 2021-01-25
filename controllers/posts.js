@@ -1,7 +1,9 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
 const { auth } = require('../middleware/middlewares')
+const upload = require('../utils/multerConfig')
 const allowedUpdates = require('../utils/allowedUpdates')
+const { json } = require('express')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
@@ -23,13 +25,15 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   }
 })
 
-postsRouter.post('/api/posts', auth,  async (req, res) => {
+postsRouter.post('/api/posts', auth, upload.single("postImage"), async (req, res) => {
   if (req.file === undefined || req.file === '' || req.file === null) {
     req.file = ''
   }
 
+  const image = req.file.buffer
   const newPost = new Post({
     ...req.body,
+    image,
     author: req.user.username,
     owner: req.user._id
   })
@@ -41,6 +45,8 @@ postsRouter.post('/api/posts', auth,  async (req, res) => {
     console.error(error);
     return res.status(500).send({ error: 'something went wrong' })
   }
+}, (error, req, res, next) => {
+  res.status(400).send({ error: error.message })
 })
 
 
