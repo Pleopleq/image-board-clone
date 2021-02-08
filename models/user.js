@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        maxlength: 240
+        maxlength: 240,
+        trim: true
     },
     tokens: [{
         token: {

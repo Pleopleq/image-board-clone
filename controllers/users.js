@@ -25,6 +25,17 @@ usersRouter.post('/api/users', async (req, res) => {
     }
 })
 
+usersRouter.post('/api/users/me/description', auth,  async (req, res) => {
+    try {
+        const description = req.body.description
+        req.user.description = description
+        await req.user.save()
+        res.status(200).end()
+    } catch (error) {
+        res.status(404).send().end()
+    }
+})
+
 usersRouter.get('/api/users/:id/avatar', async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
