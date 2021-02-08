@@ -15,6 +15,13 @@ const userSchema = new mongoose.Schema({
         minlength: 4,
         trim: true
     },
+    avatar: {
+        type: Buffer
+    },
+    description: {
+        type: String,
+        maxlength: 240
+    },
     tokens: [{
         token: {
             type: String,
@@ -34,7 +41,9 @@ userSchema.virtual("posts", {
 userSchema.methods.toJSON = function () {
     const user = this
     const userObject = user.toObject()
+
     delete userObject.password
+    delete userObject.avatar
 
     return userObject
 }

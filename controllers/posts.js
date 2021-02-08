@@ -3,7 +3,6 @@ const Post = require('../models/post')
 const { auth } = require('../middleware/middlewares')
 const upload = require('../utils/multerConfig')
 const allowedUpdates = require('../utils/allowedUpdates')
-const { json } = require('express')
 
 postsRouter.get('/api/posts', async (req, res) => {
   try {
@@ -22,6 +21,20 @@ postsRouter.get('/api/posts/:id', async (req, res) => {
   } catch (error) {
     console.log(error)
     res.status(500).send({ error: 'something went wrong' })
+  }
+})
+
+postsRouter.get('/api/posts/:id/image', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+    if(!post || !post.image){
+      throw new Error()
+    }
+
+    res.set("Content-Type", "image/jpg")
+    res.send(post.image)
+  } catch (error) {
+    res.status(404).send().end()
   }
 })
 
