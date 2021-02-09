@@ -12,8 +12,6 @@ usersRouter.post('/api/users', async (req, res) => {
         const newUser = new User({
             username,
             password, 
-            avatar: "",
-            description: ""
         })
 
         await newUser.save()
@@ -40,7 +38,7 @@ usersRouter.get('/api/users/:id/avatar', async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
 
-        if(!user){
+        if(!user || !user.avatar){
             throw new Error()
         }
 
